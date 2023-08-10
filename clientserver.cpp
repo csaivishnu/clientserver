@@ -2,32 +2,66 @@
 #include <thread>
 #include <mutex>
 #include <vector>
-#include <queue>
 #include <condition_variable>
+#define MAXSIZE 64
 using namespace std;
+
+struct CircularBuffer {
+    vector<unsigned int> buffer;
+    int front;
+    int rear;
+    int maxSize;
+
+    CircularBuffer(int size) : buffer(size), front(0), rear(0), maxSize(size) {}
+};
 
 mutex mtx1; // Mutex for protecting shared resources
 mutex mtx2; // Mutex for protecting shared resources
-queue<int> commandMailBox; // Shared data between clients and server
-queue<int> responseMailBox; // Shared data between clients and server
 condition_variable cv; // Condition variable for synchronization
+CircularBuffer commandMailBox(MAXSIZE); // Circular buffer for commands
+CircularBuffer responseMailBox(MAXSIZE); // Circular buffer for responses
+
+int circularIncrement(int value, int max) {
+    return (value + 1) % max;
+}
+
+void enqueue(CircularBuffer& cb, unsigned int data) {
+    if (circularIncrement(cb.rear, cb.maxSize) != cb.front) {
+        cb.buffer[cb.rear] = data;
+        cb.rear = circularIncrement(cb.rear, cb.maxSize);
+    }
+}
+
+unsigned int dequeue(CircularBuffer& cb, int &success) {
+    if (cb.front != cb.rear) {
+        unsigned int data = cb.buffer[cb.front];
+        cb.front = circularIncrement(cb.front, cb.maxSize);
+        success = 1;
+        return data;
+    }
+    success = 0;
+    return 0; // Empty buffer
+}
 
 void clientThread() {
-    for (int i = 0; i < 6; ++i) {
+    for (unsigned int i = 0; i < 6; ++i) {
         mtx1.lock(); // Acquire the mutex lock
-        commandMailBox.push(i); // Simulate adding data
+        enqueue(commandMailBox, i); // Simulate adding data
         cout << "Client sent the command: " << i << endl;
         mtx1.unlock(); // Release the mutex lock
 
         // Simulate some processing time
         this_thread::sleep_for(chrono::milliseconds(200));
 
-        while (!responseMailBox.empty()) {
+        while (true) {
             mtx2.lock(); // Acquire the mutex lock
-            int data = responseMailBox.front();
-            responseMailBox.pop();
-            cout << "Client recieved the response: " << data << endl;
+            int success;
+            unsigned int data = dequeue(responseMailBox, success);
             mtx2.unlock(); // Release the mutex lock
+            if (success == 0) {
+                break;
+            }
+            cout << "Client received the response: " << data << endl;
 
             // Simulate some processing time
             this_thread::sleep_for(chrono::milliseconds(200));
@@ -37,12 +71,15 @@ void clientThread() {
     unique_lock<mutex> lock(mtx1);
     cv.wait(lock);
 
-    while (!responseMailBox.empty()) {
+    while (true) {
         mtx2.lock(); // Acquire the mutex lock
-        int data = responseMailBox.front();
-        responseMailBox.pop();
-        cout << "Client recieved the response: " << data << endl;
+        int success;
+        unsigned int data = dequeue(responseMailBox, success);
         mtx2.unlock(); // Release the mutex lock
+        if (success == 0) {
+            break;
+        }
+        cout << "Client received the response: " << data << endl;
 
         // Simulate some processing time
         this_thread::sleep_for(chrono::milliseconds(200));
@@ -51,33 +88,29 @@ void clientThread() {
 
 void serverThread() {
     while (true) {
-        if (!commandMailBox.empty()) {
-            int data;
-            mtx1.lock(); // Acquire the mutex lock
-
-            data = commandMailBox.front();
-            commandMailBox.pop();
-            cout << "Server recieved the command: " << data << endl;
-
-            mtx1.unlock(); // Release the mutex lock
-
-            // Simulate some processing time
-            this_thread::sleep_for(chrono::milliseconds(300));
-
-            mtx2.lock(); // Acquire the mutex lock
-            responseMailBox.push(data); // Simulate adding data
-            cout << "Server sent the response: " << data << endl;
-            mtx2.unlock(); // Release the mutex lock
-
-            // Simulate some processing time
-            this_thread::sleep_for(chrono::milliseconds(300));
-        }
-
-        // Exit the server loop when commandMailBox is empty
-        if (commandMailBox.empty()) {
+        mtx1.lock(); // Acquire the mutex lock
+        int success;
+        unsigned int data = dequeue(commandMailBox, success);
+        mtx1.unlock(); // Release the mutex lock
+        if (success == 0) {
             break;
         }
+
+        cout << "Server received the command: " << data << endl;
+
+        // Simulate some processing time
+        this_thread::sleep_for(chrono::milliseconds(400));
+
+        mtx2.lock(); // Acquire the mutex lock
+        enqueue(responseMailBox, data); // Simulate adding data
+        cout << "Server sent the response: " << data << endl;
+        mtx2.unlock(); // Release the mutex lock
+
+        // Simulate some processing time
+        this_thread::sleep_for(chrono::milliseconds(400));
     }
+
+    // Signal that the server has completed using the condition variable
     cv.notify_one();
 }
 
