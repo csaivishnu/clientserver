@@ -1,47 +1,16 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
-#include <vector>
 #include <condition_variable>
+#include "CircularBuffer.h"
 #define MAXSIZE 64
 using namespace std;
-
-struct CircularBuffer {
-    vector<unsigned int> buffer;
-    int front;
-    int rear;
-    int maxSize;
-
-    CircularBuffer(int size) : buffer(size), front(0), rear(0), maxSize(size) {}
-};
 
 mutex mtx1; // Mutex for protecting shared resources
 mutex mtx2; // Mutex for protecting shared resources
 condition_variable cv; // Condition variable for synchronization
 CircularBuffer commandMailBox(MAXSIZE); // Circular buffer for commands
 CircularBuffer responseMailBox(MAXSIZE); // Circular buffer for responses
-
-int circularIncrement(int value, int max) {
-    return (value + 1) % max;
-}
-
-void enqueue(CircularBuffer& cb, unsigned int data) {
-    if (circularIncrement(cb.rear, cb.maxSize) != cb.front) {
-        cb.buffer[cb.rear] = data;
-        cb.rear = circularIncrement(cb.rear, cb.maxSize);
-    }
-}
-
-unsigned int dequeue(CircularBuffer& cb, int &success) {
-    if (cb.front != cb.rear) {
-        unsigned int data = cb.buffer[cb.front];
-        cb.front = circularIncrement(cb.front, cb.maxSize);
-        success = 1;
-        return data;
-    }
-    success = 0;
-    return 0; // Empty buffer
-}
 
 void clientThread() {
     for (unsigned int i = 0; i < 6; ++i) {
