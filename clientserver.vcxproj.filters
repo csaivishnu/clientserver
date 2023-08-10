@@ -15,15 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="clientserver.cpp">
+    <ClCompile Include="client_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CircularBuffer.cpp">
+    <ClCompile Include="sourcefiles\circular_buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CircularBuffer.h">
+    <ClInclude Include="headerfiles\circular_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

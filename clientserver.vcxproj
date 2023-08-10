@@ -127,11 +127,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CircularBuffer.cpp" />
-    <ClCompile Include="clientserver.cpp" />
+    <ClCompile Include="client_server.cpp" />
+    <ClCompile Include="sourcefiles\circular_buffer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CircularBuffer.h" />
+    <ClInclude Include="headerfiles\circular_buffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
