@@ -18,12 +18,12 @@
     <ClCompile Include="client_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sourcefiles\circular_buffer.cpp">
+    <ClCompile Include="sourcefiles\mail_box.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="headerfiles\circular_buffer.h">
+    <ClInclude Include="headerfiles\mail_box.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

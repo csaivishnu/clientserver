@@ -1,1 +1,6 @@
-﻿  clientserver.vcxproj -> C:\Users\csaivishnu\OneDrive - NVIDIA Corporation\main\clientserver\x64\Debug\clientserver.exe
+﻿  client_server.cpp
+  Source.cpp
+  mail_box.cpp
+C:\Users\csaivishnu\OneDrive - NVIDIA Corporation\main\clientserver\sourcefiles\mail_box.cpp(7,35): warning C4267: '=': conversion from 'size_t' to 'uint8_t', possible loss of data
+  Generating Code...
+  clientserver.vcxproj -> C:\Users\csaivishnu\OneDrive - NVIDIA Corporation\main\clientserver\x64\Debug\clientserver.exe
